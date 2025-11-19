@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Futurista SPA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body{
+            background: linear-gradient(135deg,#0a0f24,#111935,#0a0f24);
+            color:white;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .navbar{
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.05);
+        }
+        .card{
+            background: rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.1);
+            transition:.3s;
+        }
+        .card:hover{
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,255,255,0.4);
+        }
+        .btn-future{
+            background: linear-gradient(45deg,#00eaff,#008cff);
+            border:none;
+            color:#000;
+            font-weight:700;
+        }
+        .vista{display:none;}
+        .active-link{color:#00eaff !important; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+<!-- ░░ NAVBAR ░░ -->
+<nav class="navbar navbar-expand-lg fixed-top px-3">
+    <a class="navbar-brand text-info fw-bold" href="#tienda">NeoStore</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="#tienda">Tienda</a></li>
+            <li class="nav-item"><a class="nav-link" href="#carrito">Carrito (<span id="countCarrito">0</span>)</a></li>
+            <li class="nav-item"><a class="nav-link" href="#wishlist">Deseados (<span id="countWish">0</span>)</a></li>
+            <li class="nav-item"><a class="nav-link" href="#login">Login</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container" style="margin-top:120px;">
+
+<!-- ░░ TIENDA ░░ -->
+<section id="tienda" class="vista">
+    <h1 class="text-center mb-4">Productos Disponibles</h1>
+    <div class="row" id="productosContainer"></div>
+</section>
+
+<!-- ░░ CARRITO ░░ -->
+<section id="carrito" class="vista">
+    <h1 class="text-center mb-4">Carrito</h1>
+    <ul class="list-group" id="listaCarrito"></ul>
+</section>
+
+<!-- ░░ WISHLIST ░░ -->
+<section id="wishlist" class="vista">
+    <h1 class="text-center mb-4">Lista de Deseos</h1>
+    <ul class="list-group" id="listaWish"></ul>
+</section>
+
+<!-- ░░ LOGIN ░░ -->
+<section id="login" class="vista">
+    <h1 class="text-center mb-3">Iniciar Sesión</h1>
+    <div class="col-md-6 mx-auto">
+        <div class="card p-4">
+            <label class="form-label">Correo Electrónico</label>
+            <input id="correo" type="email" class="form-control mb-3">
+            <button class="btn btn-future w-100" onclick="login()">Ingresar</button>
+        </div>
+    </div>
+</section>
+
+</div>
+
+<script>
+// ░░ DATA ░░
+let productos=[
+    {id:1,nombre:"Auriculares Gamer",precio:29990,img:"https://via.placeholder.com/200"},
+    {id:2,nombre:"Teclado Mecánico RGB",precio:45990,img:"https://via.placeholder.com/200"},
+    {id:3,nombre:"Mouse Pro 16000 DPI",precio:19990,img:"https://via.placeholder.com/200"}
+];
+let carrito=[];
+let wishlist=[];
+let usuario=null;
+
+// ░░ RENDER TIENDA ░░
+function renderProductos(){
+    const cont=document.getElementById("productosContainer");
+    cont.innerHTML="";
+    productos.forEach(p=>{
+        cont.innerHTML+=`
+        <div class='col-md-4 mb-4'>
+            <div class='card p-3 text-center'>
+                <img src='${p.img}' class='img-fluid rounded mb-3'>
+                <h4>${p.nombre}</h4>
+                <p class='text-info fw-bold'>$${p.precio}</p>
+                <button class='btn btn-future w-100 mb-2' onclick='agregarCarrito(${p.id})'>Agregar al Carrito</button>
+                <button class='btn btn-outline-info w-100' onclick='agregarWish(${p.id})'>Agregar a Deseados</button>
+            </div>
+        </div>`;
+    })
+}
+
+// ░░ LOGIN ░░
+function login(){
+    let email=document.getElementById("correo").value;
+    if(email.length<5 || !email.includes("@")) return alert("Correo inválido");
+    usuario=email;
+    alert("Sesión iniciada: "+usuario);
+    location.hash="#tienda";
+}
+
+// ░░ CARRITO ░░
+function agregarCarrito(id){
+    if(!usuario) return location.hash="#login";
+    let prod=productos.find(x=>x.id===id);
+    carrito.push(prod);
+    renderCarrito();
+}
+function renderCarrito(){
+    const list=document.getElementById("listaCarrito");
+    document.getElementById("countCarrito").innerText=carrito.length;
+    list.innerHTML="";
+    carrito.forEach(x=>{
+        list.innerHTML+=`<li class='list-group-item bg-dark text-white'>${x.nombre} - $${x.precio}</li>`;
+    })
+}
+
+// ░░ WISHLIST ░░
+function agregarWish(id){
+    let prod=productos.find(x=>x.id===id);
+    if(!wishlist.includes(prod)) wishlist.push(prod);
+    renderWish();
+}
+function renderWish(){
+    const list=document.getElementById("listaWish");
+    document.getElementById("countWish").innerText=wishlist.length;
+    list.innerHTML="";
+    wishlist.forEach(x=>{
+        list.innerHTML+=`<li class='list-group-item bg-dark text-white'>${x.nombre} - $${x.precio}</li>`;
+    })
+}
+
+// ░░ SPA ROUTER ░░
+function navegar(r){
+    document.querySelectorAll('.vista').forEach(v=>v.style.display='none');
+    document.getElementById(r).style.display='block';
+    document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active-link'));
+    document.querySelector(`[href="#${r}"]`)?.classList.add('active-link');
+}
+window.addEventListener('hashchange',()=>{
+    navegar(location.hash.replace('#','')||'tienda');
+})
+window.addEventListener('DOMContentLoaded',()=>{
+    renderProductos();
+    navegar(location.hash.replace('#','')||'tienda');
+})
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-Commerce Futurista SPA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        body {
+            background: #0d0d0d;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .navbar{
+            background: linear-gradient(90deg,#001f1f,#003f3f,#001f1f);
+            box-shadow: 0 0 25px #00ffc3;
+        }
+        .btn-buy{
+            background:#00ffc3;
+            color:#000;
+            font-weight:bold;
+            border:none;
+            transition:.2s;
+        }
+        .btn-buy:hover{
+            transform:scale(1.05);
+            box-shadow:0 0 15px #00ffc3;
+        }
+        .product-card{
+            background:#111;
+            border:1px solid #00ffc3;
+            border-radius:15px;
+            box-shadow:0 0 15px rgba(0,255,200,.3);
+            transition:.3s;
+        }
+        .product-card:hover{
+            transform:translateY(-5px);
+            box-shadow:0 0 25px rgba(0,255,200,.6);
+        }
+        .futuristic-title{
+            color:#00ffc3;
+            text-shadow:0 0 15px #00ffc3;
+        }
+        .vista{display:none;}
+        .toast-box{
+            position:fixed;
+            right:20px;
+            bottom:20px;
+            background:#00ffc3;
+            color:#000;
+            padding:12px 18px;
+            border-radius:10px;
+            font-weight:bold;
+            box-shadow:0 4px 20px rgba(0,255,200,.6);
+            animation:fadein .3s;
+        }
+        @keyframes fadein{from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);}}
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark px-3">
+    <a class="navbar-brand fw-bold fs-3" href="#tienda">NeoStore</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-3">
+            <li class="nav-item"><a class="nav-link" href="#tienda">Tienda</a></li>
+            <li class="nav-item"><a class="nav-link" href="#carrito">Carrito <span id="cart-count" class="badge bg-success ms-1">0</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#wishlist">Deseados <span id="wish-count" class="badge bg-warning text-dark ms-1">0</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#login"><i class="bi bi-person-circle"></i> Iniciar Sesión</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- TIENDA -->
+<section id="tienda" class="vista container py-5">
+    <h2 class="text-center mb-5 futuristic-title">Productos Destacados</h2>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="product-card p-3">
+                <img src="https://via.placeholder.com/350x200" class="w-100 rounded mb-3">
+                <h4>RTX 4090</h4>
+                <p>$1.299.990 CLP</p>
+                <button class="btn btn-buy w-100 mb-2" onclick="handleAddToCart('prod-1')">Agregar al carrito</button>
+                <button class="btn btn-outline-light w-100" onclick="handleToggleWishlist('prod-1')"><i class="bi bi-heart"></i> Deseados</button>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="product-card p-3">
+                <img src="https://via.placeholder.com/350x200" class="w-100 rounded mb-3">
+                <h4>Intel i9 14900K</h4>
+                <p>$699.990 CLP</p>
+                <button class="btn btn-buy w-100 mb-2" onclick="handleAddToCart('prod-2')">Agregar al carrito</button>
+                <button class="btn btn-outline-light w-100" onclick="handleToggleWishlist('prod-2')"><i class="bi bi-heart"></i> Deseados</button>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="product-card p-3">
+                <img src="https://via.placeholder.com/350x200" class="w-100 rounded mb-3">
+                <h4>SSD 2TB NVMe</h4>
+                <p>$199.990 CLP</p>
+                <button class="btn btn-buy w-100 mb-2" onclick="handleAddToCart('prod-3')">Agregar al carrito</button>
+                <button class="btn btn-outline-light w-100" onclick="handleToggleWishlist('prod-3')"><i class="bi bi-heart"></i> Deseados</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- LOGIN -->
+<section id="login" class="vista container py-5">
+    <h2 class="text-center futuristic-title mb-4">Iniciar Sesión</h2>
+
+    <div class="mx-auto p-4" style="max-width:400px; background:#111; border:1px solid #00ffc3; border-radius:15px;">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" id="loginEmail" class="form-control mb-3" placeholder="tucorreo@example.com">
+
+        <button class="btn btn-buy w-100" onclick="loginUser()">Ingresar</button>
+    </div>
+</section>
+
+<!-- CARRITO -->
+<section id="carrito" class="vista container py-5">
+    <h2 class="text-center futuristic-title mb-4">Mi Carrito</h2>
+    <ul id="carrito-lista" class="list-group"></ul>
+</section>
+
+<!-- WISHLIST -->
+<section id="wishlist" class="vista container py-5">
+    <h2 class="text-center futuristic-title mb-4">Lista de Deseos</h2>
+    <ul id="wishlist-list" class="list-group"></ul>
+</section>
+
+<!-- SCRIPTS PRINCIPALES -->
+<script>
+// ---------------- SPA ROUTER ----------------
+function navegar(ruta) {
+    document.querySelectorAll('.vista').forEach(v => v.style.display = 'none');
+    const dest = document.getElementById(ruta) || document.getElementById('tienda');
+    dest.style.display = 'block';
+}
+window.addEventListener('hashchange', () => navegar(location.hash.replace('#','')));
+window.addEventListener('DOMContentLoaded', () => navegar(location.hash.replace('#','') || 'tienda'));
+
+// ---------------- SISTEMA COMPLETO ----------------
+const STORAGE_CART = 'pcf_cart_v1';
+const STORAGE_WISH = 'pcf_wish_v1';
+const STORAGE_USER = 'pcf_user_v1';
+
+const readJSON = (k) => JSON.parse(localStorage.getItem(k) || '[]');
+const saveJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+function isLoggedIn(){ return !!localStorage.getItem(STORAGE_USER); }
+
+function requireLogin(){
+    if(!isLoggedIn()){
+        alert('Debes iniciar sesión para continuar.');
+        location.hash = 'login';
+        return false;
+    }
+    return true;
+}
+
+// -------- Productos "base" --------
+const catalog = {
+    'prod-1': { id:'prod-1', title:'RTX 4090', price:1299990 },
+    'prod-2': { id:'prod-2', title:'Intel i9 14900K', price:699990 },
+    'prod-3': { id:'prod-3', title:'SSD 2TB NVMe', price:199990 }
+};
+
+// -------- Utilidad Notificación --------
+function showToast(msg){
+    const t = document.createElement('div');
+    t.className = 'toast-box';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),1800);
+}
+
+// -------- LOGIN --------
+function loginUser(){
+    const email = document.getElementById('loginEmail').value;
+    if(!email){ alert('Ingrese un correo válido.'); return; }
+    localStorage.setItem(STORAGE_USER, email);
+    showToast('Sesión iniciada');
+    location.hash = 'tienda';
+    updateCartBadge();
+    updateWishBadge();
+}
+
+// -------- CARRITO --------
+function getCart(){ return readJSON(STORAGE_CART); }
+function saveCart(arr){ saveJSON(STORAGE_CART, arr); updateCartBadge(); renderCart(); }
+
+function addToCart(product){
+    if(!requireLogin()) return;
+    const cart = getCart();
+    const exist = cart.find(i=>i.id===product.id);
+    if(exist) exist.qty++;
+    else cart.push({...product, qty:1});
+    saveCart(cart);
+    showToast('Producto agregado al carrito');
+}
+function removeFromCart(id){ saveCart(getCart().filter(i=>i.id!==id)); }
+
+function changeQty(id, qty){
+    const cart = getCart();
+    const item = cart.find(i=>i.id===id);
+    if(!item) return;
+    item.qty = Math.max(1, qty);
+    saveCart(cart);
+}
+
+// -------- WISHLIST --------
+function getWish(){ return readJSON(STORAGE_WISH); }
+function saveWish(arr){ saveJSON(STORAGE_WISH, arr); updateWishBadge(); renderWishlist(); }
+
+function toggleWishlist(product){
+    if(!requireLogin()) return;
+    const wish = getWish();
+    const f = wish.find(i=>i.id===product.id);
+    if(f){ saveWish(wish.filter(i=>i.id!==product.id)); showToast('Quitado de la lista'); }
+    else { wish.push(product); saveWish(wish); showToast('Agregado a deseados'); }
+}
+
+// -------- Handlers para botones --------
+function handleAddToCart(id){ addToCart(catalog[id]); }
+function handleToggleWishlist(id){ toggleWishlist(catalog[id]); }
+
+// -------- Render de carrito --------
+function renderCart(){
+    const cont = document.getElementById('carrito-lista');
+    const cart = getCart();
+    cont.innerHTML = '';
+    if(cart.length===0){ cont.innerHTML = '<li class="list-group-item bg-dark text-light">Carrito vacío</li>'; return; }
+
+    cart.forEach(p=>{
+        const li = document.createElement('li');
+        li.className = 'list-group-item bg-dark text-light d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+            <div>
+                <strong>${p.title}</strong><br>
+                <small>$${p.price} CLP</small>
+            </div>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-light" onclick="changeQty('${p.id}', ${p.qty-1})">-</button>
+                <input class="form-control form-control-sm text-center mx-2" style="width:50px;" value="${p.qty}" onchange="changeQty('${p.id}', parseInt(this.value))">
+                <button class="btn btn-sm btn-outline-light" onclick="changeQty('${p.id}', ${p.qty+1})">+</button>
+                <button class="btn btn-sm btn-danger ms-2" onclick="removeFromCart('${p.id}')">X</button>
+            </div>`;
+        cont.appendChild(li);
+    });
+}
+
+// -------- Render wishlist --------
+function renderWishlist(){
+    const cont = document.getElementById('wishlist-list');
+    const wish = getWish();
+    cont.innerHTML = '';
+    if(wish.length===0){ cont.innerHTML = '<li class="list-group-item bg-dark text-light">Lista vacía</li>'; return; }
+
+    wish.forEach(p=>{
+        const li = document.createElement('li');
+        li.className = 'list-group-item bg-dark text-light d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+            <div>
+                <strong>${p.title}</strong><br>
+                <small>$${p.price} CLP</small>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-buy me-2" onclick="addToCart(catalog['${p.id}'])">Comprar</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="toggleWishlist(catalog['${p.id}'])">Eliminar</button>
+            </div>`;
+        cont.appendChild(li);
+    });
+}
+
+// -------- Badges --------
+function updateCartBadge(){
+    const c = getCart().reduce((s,i)=>s+i.qty,0);
+    document.getElementById('cart-count').textContent = c;
+}
+function updateWishBadge(){
+    document.getElementById('wish-count').textContent = getWish().length;
+}
+
+window.onload = ()=>{
+    updateCartBadge();
+    updateWishBadge();
+    renderCart();
+    renderWishlist();
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
